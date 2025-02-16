@@ -5,22 +5,27 @@ import path from 'node:path';
 import db from './config/connection.js';
 // import routes from './routes/index.js';
 import { typeDefs, resolvers } from './schemas/index.js';
+import { authenticateToken } from './services/auth.js';
 
-const app = express();
+
 const PORT = process.env.PORT || 3001;
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  introspection: true
 });
+const app = express();
 
 const startApolloServer = async () => {
   await server.start();
   await db
-  
+
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   
-  app.use('/graphql', expressMiddleware(server));
+  app.use('/graphql', expressMiddleware(server as any,
+    {context:authenticateToken as any}
+  ));
 
   // if we're in production, serve client/dist as static assets
   if (process.env.NODE_ENV === 'production') {
