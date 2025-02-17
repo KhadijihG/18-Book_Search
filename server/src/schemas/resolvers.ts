@@ -1,3 +1,5 @@
+import AddUserArgs from '../interfaces/AddUserArgs';
+import BookInput from '../interfaces/BookInput';
 import LoginUserArgs from '../interfaces/LoginUserArgs';
 import IUser from '../interfaces/User';
 import {User} from '../models/index.js';
@@ -34,18 +36,47 @@ const resolvers = {
       // Return the token and the user
       return { token, user };
     },
-    // createMatchup: async (_parent: any, args: any): Promise<IMatchup | null> => {
-    //   const matchup = await Matchup.create(args);
-    //   return matchup;
-    // },
-    // createVote: async (_parent: any, { _id, techNum }: { _id: string, techNum: number}): Promise<IMatchup | null> => {
-    //   const vote = await Matchup.findOneAndUpdate(
-    //     { _id },
-    //     { $inc: { [`tech${techNum}_votes`]: 1 } },
-    //     { new: true }
-    //   );
-    //   return vote;
-    // },
+
+    addUser: async (_parent: any, { input }: AddUserArgs) => {
+      // Create a new user with the provided username, email, and password
+      const user = await User.create({ ...input });
+    
+      // Sign a token with the user's information
+      const token = signToken(user.username, user.email, user._id);
+    
+      // Return the token and the user
+      return { token, user };
+    },
+    saveBook: async (_parent: any, { book }: {book: BookInput}, context: any) => {
+      if (context.user) {
+      
+
+       const user = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { savedBooks: book } },
+          {new: true}
+        );
+
+        return user;
+      }
+      throw AuthenticationError;
+      ('You need to be logged in!');
+    },
+    removeBook: async (_parent: any, { bookId }: {bookId: string}, context: any) => {
+      if (context.user) {
+      
+
+       const user = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: {bookId} } },
+          {new: true}
+        );
+
+        return user;
+      }
+      throw AuthenticationError;
+      ('You need to be logged in!');
+    },
   },
 };
 
