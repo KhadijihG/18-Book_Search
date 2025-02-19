@@ -38,6 +38,8 @@ const resolvers = {
     },
 
     addUser: async (_parent: any, { input }: AddUserArgs) => {
+      console.log('g');
+      
       // Create a new user with the provided username, email, and password
       const user = await User.create({ ...input });
     
